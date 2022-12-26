@@ -170,7 +170,7 @@ def chat(chats: int | str | list[int | str]):
 def text(text: str, check_caption: bool = True):
     """Filter on the message text/caption == your text"""
     async def check_text(_, msg):
-        return bool(msg.text) and msg.text == _.text or (bool(msg.caption) and msg.caption == _.text) if _.check_caption else False
+        return bool(msg.text) and msg.text == _.text or (hasattr(msg, 'caption') and bool(msg.caption) and msg.caption == _.text) if _.check_caption else False
     
     return create_filter(
         check_text,
