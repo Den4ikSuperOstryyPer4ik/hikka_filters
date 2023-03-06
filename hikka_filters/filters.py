@@ -347,7 +347,7 @@ async def reply_filter(flt, msg):
 
 
 async def group_chat_filter(flt, msg):
-    return msg.peer_id and (isinstance(msg.peer_id, telethon.tl.types.PeerChannel) and msg.chat.megagroup or isinstance(msg.peer_id, telethon.tl.types.PeerChat))
+    return hasattr(msg, "peer_id") and msg.peer_id and (isinstance(msg.peer_id, telethon.tl.types.PeerChannel) and msg.chat.megagroup or isinstance(msg.peer_id, telethon.tl.types.PeerChat))
 
 
 async def channel_filter(flt, msg):
