@@ -132,7 +132,7 @@ def create_filter(func: Callable, **kwargs) -> Filter:
     """
     
     return type(
-        func.__name__ or 'Custom_Filter',
+        func.__name__ or "Custom_Filter",
         (Filter,),
         {"__call__": func, **kwargs}
     )()
@@ -423,23 +423,127 @@ media = create_filter(media_filter)
 A media message contains any of the following fields set: *audio*, *document*, *photo*, *sticker*, *video*, *voice*, *video_note*, *dice*, *poll*.
 """
 
+def command(filters: Optional[Filter] = None, args: Optional[Union[bool, Filter]] = None, *args_, **kwargs):
+    """
+    Decorator for hikka-command.
+    
+    Parameters:
+        ``filters``(*optional*, ``Filter``) - filters to check command
+        
+        ``args`` (*optional*, ``bool | Filter``) - check command for arguments?
+        
+        ``*args_, **kwargs``
+    """
+    def command_decorator(cmd_func):
+        _filters = filters
+        if args:
+            if isinstance(args, bool):
+                _args_flt = create_filter(args_filter)
+            else:
+                _args_flt = args
+            
+            if not _filters:
+                _filters = _args_flt
+            else:
+                _filters = _filters & _args_flt
+        
+        async def func(_, update, *func_args, **func_kwargs):
+            if _filters and (await _filters(update, *func_args, **func_kwargs)) or not _filters:
+                return await cmd_func(_, update, *func_args, **func_kwargs)
+            else:
+                return False
+        
+        func.__name__ = cmd_func.__name__
+        setattr(func, "is_command", True)
+        for arg in args_:
+            setattr(func, arg, True)
+    
+        for kwarg, value in kwargs.items():
+            setattr(func, kwarg, value)
+        
+        return func
+    
+    return command_decorator
+
+CONTENT_TYPES = [
+    "photo",
+    "text",
+    "video",
+    "dice",
+    "forwarded",
+    "audio",
+    "document",
+    "sticker",
+    "via_bot",
+    "animation",
+]
+
+def content_types(types: Union[list[str], str]):
+    """Check message with content-types
+    Parameters:
+        ``types`` (``list[str] | str``) - list for content types or one content type
+    
+    ContentTypesList:
+        ``photo``, 
+        ``text``, 
+        ``video``, 
+        ``dice``, 
+        ``forwarded``, 
+        ``audio``, 
+        ``document``, 
+        ``sticker``, 
+        ``via_bot``, 
+        ``animation``
+    """
+    
+    async def check_content_types(flt, message):
+        _types = {
+            "photo": (message.photo is not None),
+            "text": (message.text is not None),
+            "video": (message.video is not None),
+            "dice": (message.dice is not None),
+            "forwarded": (message.fwd_from is not None),
+            "audio": (message.audio is not None),
+            "document": (message.document is not None),
+            "sticker": (message.sticker is not None),
+            "via_bot": (message.via_bot is not None),
+            "animation": (message.gif is not None),
+        }
+        
+        for _type in flt.types:
+            if _types[_type]:
+                return True
+        
+        return False
+    
+    if isinstance(types, str):
+        types = [types]
+    
+    for _type in types:
+        if _type not in CONTENT_TYPES:
+            raise ValueError(f"Type, passed in filter <content_types>: \"{_type}\" not is a content type!")
+    
+    return create_filter(check_content_types, types=types)
+
 
 __all__ = [
-    'create_filter',
-    'user',
-    'chat_admin',
-    'premium_user',
-    'user_has_username',
-    'sender_bot',
-    'user_has_bio',
-    'me',
-    'reply',
-    'group_chat',
-    'channel',
-    'args',
-    'via_bot',
-    'media',
-    'chat',
-    'check_filters',
-    'text',
+    "create_filter",
+    "user",
+    "chat_admin",
+    "premium_user",
+    "user_has_username",
+    "sender_bot",
+    "user_has_bio",
+    "me",
+    "reply",
+    "group_chat",
+    "channel",
+    "args",
+    "via_bot",
+    "media",
+    "chat",
+    "check_filters",
+    "text",
+    "content_types",
+    "command",
 ]
