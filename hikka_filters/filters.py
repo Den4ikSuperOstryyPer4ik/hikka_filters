@@ -525,6 +525,72 @@ def content_types(types: Union[list[str], str]):
     
     return create_filter(check_content_types, types=types)
 
+CHAT_TYPES = [
+    "PRIVATE",
+    "CHANNEL",
+    "GROUP",
+    "SUPERGROUP",
+]
+
+def chat_type(types: Union[list[str], str]):
+    """Check chat with chat-type
+    Parameters:
+        ``types`` (``list[str] | str``) - list for chat types or one chat type
+    
+    ChatTypesList:
+        ``PRIVATE``, 
+        ``CHANNEL``, 
+        ``GROUP``, 
+        ``SUPERGROUP``
+    """
+    
+    async def check_chat_type(flt, message):
+        if (
+            not hasattr(message, "peer_id")
+            or not message.peer_id
+            or not hasattr(message, "chat")
+            or not message.chat
+        ):
+            return False
+        
+        _types = {
+            "PRIVATE": (
+                hasattr(message, "chat") 
+                and message.chat
+                and isinstance(message.chat, telethon.tl.types.User)
+                and isinstance(message.peer_id, telethon.tl.types.PeerUser)
+            ),
+            "CHANNEL": (
+                hasattr(message, "chat")
+                and message.chat
+                and isinstance(message.chat, telethon.tl.types.Channel)
+                and not message.chat.megagroup
+                and isinstance(message.peer_id, telethon.tl.types.PeerChannel)
+            ),
+            "GROUP": isinstance(message.peer_id, telethon.tl.types.PeerChat),
+            "SUPERGROUP": (
+                hasattr(message, "chat")
+                and message.chat
+                and isinstance(message.peer_id, telethon.tl.types.PeerChannel)
+                and message.chat.megagroup
+            ),
+        }
+        
+        for _type in flt.types:
+            if _types[_type]:
+                return True
+        
+        return False
+    
+    if isinstance(types, str):
+        types = [types]
+    
+    for _type in types:
+        if _type.upper() not in CHAT_TYPES:
+            raise ValueError(f"Type, passed in filter <content_types>: \"{_type}\" not is a chat type!")
+    
+    return create_filter(check_chat_type, types=types)
+
 
 __all__ = [
     "create_filter",
@@ -546,4 +612,5 @@ __all__ = [
     "text",
     "content_types",
     "command",
+    "chat_type"
 ]
