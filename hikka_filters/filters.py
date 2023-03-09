@@ -554,12 +554,7 @@ def chat_type(types: Union[list[str], str]):
             return False
         
         _types = {
-            "PRIVATE": (
-                hasattr(message, "chat") 
-                and message.chat
-                and isinstance(message.chat, telethon.tl.types.User)
-                and isinstance(message.peer_id, telethon.tl.types.PeerUser)
-            ),
+            "PRIVATE": isinstance(message.peer_id, telethon.tl.types.PeerUser),
             "CHANNEL": (
                 hasattr(message, "chat")
                 and message.chat
@@ -577,7 +572,7 @@ def chat_type(types: Union[list[str], str]):
         }
         
         for _type in flt.types:
-            if _types[_type]:
+            if _types[_type.upper()]:
                 return True
         
         return False
