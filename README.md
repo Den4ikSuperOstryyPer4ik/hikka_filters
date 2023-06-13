@@ -26,6 +26,10 @@ from hikka_filters import check_filters, user, chat, text, media, content_types,
 class TestModule(loader.Module):
     """Test module for `hikka-filters` library"""
 
+    strings = {
+        "name": "TestHikkaModule"
+    }
+
     @loader.watcher()
     @check_filters(media)
     async def media_watcher(self, message):
