@@ -1,39 +1,3 @@
-<style type="text/css">
-@font-face {
-    font-family: 'Movement';
-    src: url('https://static.hikari.gay/Movement.ttf') format('truetype');
-}
-
-.hikka_label {
-    display: inline-block;
-    background: white;
-    padding: 10px 15px;
-    border-radius: 30px;
-    font-family: "Movement";
-    color: black;
-    font-size: 30px;
-    line-height: 30px;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.label_inner {
-    display: flex;
-}
-
-.moon {
-    height: 30px;
-}
-</style>
-
-<div class="hikka_label">
-    <div class="label_inner">
-        <img src="https://github.com/hikariatama/assets/raw/master/waning-crescent-moon_1f318.png" class="moon">
-        &nbsp;Hikka
-    </div>
-</div>
-
 # Hikka Filters
 
 >## Filters for updates-handlers for Telegram UserBot [Hikka](https://github.com/hikariatama/Hikka)
@@ -96,5 +60,3 @@ class TestModule(loader.Module):
 >## File hikka_test_module.py
 #
 # Thanks [@hikariatama](https://github.com/hikariatama) for making a great userbot for Telegram: [Hikka](https://hikka.pw/)!
-
->### Author logo `Hikka`, font Movement, logo-CSS: [@hikariatama](https://github.com/hikariatama)
