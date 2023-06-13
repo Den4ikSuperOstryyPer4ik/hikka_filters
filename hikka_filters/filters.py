@@ -1,7 +1,7 @@
 import inspect
-import telethon
+from hikkatl.tl.types import User, Chat, Channel, PeerChannel, PeerChat, PeerUser
 import re
-from typing import Optional, Union, Callable
+from typing import Optional, Union, Callable, List
 
 
 class Filter:
@@ -156,12 +156,12 @@ def check_filters(filters: Union[Filter, AndFilter, OrFilter, InvertFilter]):
     return decorator
 
 
-def user(users: Union[int, str, list[Union[int, str]]]):
+def user(users: Union[int, str, List[Union[int, str]]]):
     """User Filter (:param:users (``int`` | ``str`` | ``list[`int` | `str`]`` - users IDs/usernames)"""
     users = users if isinstance(users, list) else [users]
     
     async def user_filter(flt, msg):
-        if not (msg.sender and isinstance(msg.sender, telethon.tl.types.User)):
+        if not (msg.sender and isinstance(msg.sender, User)):
             return False
         
         for user in flt.users:
@@ -177,7 +177,7 @@ def user(users: Union[int, str, list[Union[int, str]]]):
     return create_filter(user_filter, users=users)
 
 
-def chat(chats: Union[int, str, list[Union[int, str]]]):
+def chat(chats: Union[int, str, List[Union[int, str]]]):
     """
     Chat Filter
     :param:chats (``int`` | ``str`` | ``list[`int` | `str`]`` - chats IDs/usernames)
@@ -187,9 +187,9 @@ def chat(chats: Union[int, str, list[Union[int, str]]]):
     async def chat_filter(flt, msg):
         if not (
             msg.chat and (
-                isinstance(msg.chat, telethon.tl.types.Channel)
-                or isinstance(msg.chat, telethon.tl.types.User)
-                or isinstance(msg.chat, telethon.tl.types.Chat)
+                isinstance(msg.chat, Channel)
+                or isinstance(msg.chat, User)
+                or isinstance(msg.chat, Chat)
             )
         ):
             return False
@@ -208,12 +208,12 @@ def chat(chats: Union[int, str, list[Union[int, str]]]):
 
 
 def text(
-    text: Optional[Union[str, list[str]]] = None,
-    startswith: Optional[Union[str, list[str]]] = None,
-    endswith: Optional[Union[str, list[str]]] = None,
+    text: Optional[Union[str, List[str]]] = None,
+    startswith: Optional[Union[str, List[str]]] = None,
+    endswith: Optional[Union[str, List[str]]] = None,
     lower: bool = True,
-    re_match: Optional[Union[str, list[str]]] = None,
-    re_search: Optional[Union[str, list[str]]] = None,
+    re_match: Optional[Union[str, List[str]]] = None,
+    re_search: Optional[Union[str, List[str]]] = None,
 ):
     """Filter on the message text/caption"""
     if (
@@ -316,30 +316,30 @@ def text(
 
 
 async def chat_admin_filter(flt, msg):
-    if msg.peer_id and isinstance(msg.peer_id, telethon.tl.types.PeerChannel) and msg.chat.megagroup and (str(msg.sender_id).startswith('-100') is False):
+    if msg.peer_id and isinstance(msg.peer_id, PeerChannel) and msg.chat.megagroup and (str(msg.sender_id).startswith('-100') is False):
         return (await msg.client.get_permissions(msg.peer_id.channel_id, msg.sender_id)).is_admin
     else:
         return False
 
 
 async def premium_user_filter(flt, msg):
-    return msg.sender and isinstance(msg.sender, telethon.tl.types.User) and msg.sender.premium
+    return msg.sender and isinstance(msg.sender, User) and msg.sender.premium
 
 
 async def user_has_username_filter(flt, msg):
-    return msg.sender and isinstance(msg.sender, telethon.tl.types.User) and bool(msg.sender.username)
+    return msg.sender and isinstance(msg.sender, User) and bool(msg.sender.username)
 
 
 async def sender_bot_filter(flt, msg):
-    return msg.sender and isinstance(msg.sender, telethon.tl.types.User) and bool(msg.sender.bot)
+    return msg.sender and isinstance(msg.sender, User) and bool(msg.sender.bot)
 
 
 async def user_has_bio_filter(flt, msg):
-    return msg.sender and isinstance(msg.sender, telethon.tl.types.User) and bool((await msg.client.get_fulluser(msg.sender.id)).full_user.about)
+    return msg.sender and isinstance(msg.sender, User) and bool((await msg.client.get_fulluser(msg.sender.id)).full_user.about)
 
 
 async def me_filter(flt, msg):
-    return msg.sender and isinstance(msg.sender, telethon.tl.types.User) and bool(msg.sender.is_self)
+    return msg.sender and isinstance(msg.sender, User) and bool(msg.sender.is_self)
 
 
 async def reply_filter(flt, msg):
@@ -347,11 +347,11 @@ async def reply_filter(flt, msg):
 
 
 async def group_chat_filter(flt, msg):
-    return hasattr(msg, "peer_id") and msg.peer_id and (isinstance(msg.peer_id, telethon.tl.types.PeerChannel) and msg.chat.megagroup or isinstance(msg.peer_id, telethon.tl.types.PeerChat))
+    return hasattr(msg, "peer_id") and msg.peer_id and (isinstance(msg.peer_id, PeerChannel) and msg.chat.megagroup or isinstance(msg.peer_id, PeerChat))
 
 
 async def channel_filter(flt, msg):
-    return msg.chat and msg.peer_id and (isinstance(msg.chat, telethon.tl.types.Channel) and not msg.chat.megagroup and isinstance(msg.peer_id, telethon.tl.types.PeerChannel))
+    return msg.chat and msg.peer_id and (isinstance(msg.chat, Channel) and not msg.chat.megagroup and isinstance(msg.peer_id, PeerChannel))
 
 
 def get_args_raw(message) -> Union[str, bool]:
@@ -478,7 +478,7 @@ CONTENT_TYPES = [
     "animation",
 ]
 
-def content_types(types: Union[list[str], str]):
+def content_types(types: Union[List[str], str]):
     """Check message with content-types
     Parameters:
         ``types`` (``list[str] | str``) - list for content types or one content type
@@ -532,7 +532,7 @@ CHAT_TYPES = [
     "SUPERGROUP",
 ]
 
-def chat_type(types: Union[list[str], str]):
+def chat_type(types: Union[List[str], str]):
     """Check chat with chat-type
     Parameters:
         ``types`` (``list[str] | str``) - list for chat types or one chat type
@@ -554,19 +554,19 @@ def chat_type(types: Union[list[str], str]):
             return False
         
         _types = {
-            "PRIVATE": isinstance(message.peer_id, telethon.tl.types.PeerUser),
+            "PRIVATE": isinstance(message.peer_id, PeerUser),
             "CHANNEL": (
                 hasattr(message, "chat")
                 and message.chat
-                and isinstance(message.chat, telethon.tl.types.Channel)
+                and isinstance(message.chat, Channel)
                 and not message.chat.megagroup
-                and isinstance(message.peer_id, telethon.tl.types.PeerChannel)
+                and isinstance(message.peer_id, PeerChannel)
             ),
-            "GROUP": isinstance(message.peer_id, telethon.tl.types.PeerChat),
+            "GROUP": isinstance(message.peer_id, PeerChat),
             "SUPERGROUP": (
                 hasattr(message, "chat")
                 and message.chat
-                and isinstance(message.peer_id, telethon.tl.types.PeerChannel)
+                and isinstance(message.peer_id, PeerChannel)
                 and message.chat.megagroup
             ),
         }
